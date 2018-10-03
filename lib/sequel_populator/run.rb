@@ -1,42 +1,72 @@
+# frozen_string_literal: true
+
 require 'json'
 require 'yaml'
 
-module Sequel::Populator
-  def self.run(db, source)
-    Sequel.extension :inflector
+module Sequel
+  # This class is responsible for the runner to populate the database with
+  # seed/dev/test data
+  class Populator
+    def initialize(database, source)
+      Sequel.extension :inflector
 
-    data = _load_data_from source
+      @database = database
+      @source = source
+    end
 
-    db.transaction do
-      data.each do |table, entities|
-        entities.each do |entity|
-          table_sym = table.to_sym
-          fields = entity.reject { |field| field.start_with? '$' }
-
-          if data.key? '$refs'
-            data['$refs'].each do |ref, ref_fields|
-              id = db[ref.pluralize.to_sym].first!(ref_fields)[:id]
-              fields[ref.foreign_key.to_sym] = id
-            end
-          end
-
-          entity = db[table].first fields
-          db[table].insert fields if entity.nil?
-        end
+    def run
+      @database.transaction do
+        seed_data.each { |table, entities| process_table(table, entities) }
       end
     end
-  end
 
-  def self._load_data_from(source)
-    return source if source.is_a? Hash
+    def self.run(database, source)
+      new(database, source).run
+    end
 
-    case File.extname(source).downcase
-    when '.json'
-      JSON.parse File.read(source)
-    when '.yml'
-      YAML.load File.read(source)
-    else
-      raise 'Unable to handle source'
+    private
+
+    def process_table(table, entities)
+      table_sym = table.to_sym
+
+      entities.each do |entity|
+        fields = entity.reject do |field|
+          field.start_with?('$')
+        end.merge(fetch_references(entity))
+
+        create_unless_exists(table_sym, fields)
+      end
+    end
+
+    def fetch_references(entity)
+      references = {}
+
+      if entity.key?('$refs')
+        entity['$refs'].each do |ref, ref_fields|
+          id = @database[ref.pluralize.to_sym].first!(ref_fields)[:id]
+          references[ref.foreign_key.to_sym] = id
+        end
+      end
+
+      references
+    end
+
+    def create_unless_exists(table, fields)
+      existing = @database[table].first(fields)
+      @database[table].insert(fields) if existing.nil?
+    end
+
+    def seed_data
+      return @source if @source.is_a?(Hash)
+
+      case File.extname(@source).downcase
+      when '.json'
+        JSON.parse File.read(@source)
+      when '.yml'
+        YAML.safe_load File.read(@source)
+      else
+        raise 'Unable to handle source'
+      end
     end
   end
 end
