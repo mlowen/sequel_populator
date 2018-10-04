@@ -30,10 +30,6 @@ RSpec.describe Sequel::Populator do
 
         expect(@database[:items].count).to eq 1
 
-        row = @database[:items].first
-
-        expect(row[:slug]).to eq 'foo'
-        expect(row[:count]).to eq 1
       end
 
       it 'will not insert when the entity already exists' do
@@ -49,7 +45,21 @@ RSpec.describe Sequel::Populator do
     end
 
     context 'multiple entities' do
-      it 'can insert multiple entities into a table'
+      it 'can insert multiple entities into a table' do
+        data = {
+          'item' => [
+            { 'slug' => 'foo', 'count' => 1 },
+            { 'slug' => 'bar', 'count' => 2 }
+          ]
+        }
+
+        Sequel::Populator.run @database, data
+
+        expect(@database[:items].count).to eq 2
+        expect(@database[:items].first(slug: 'foo', count: 1).nil?).to be_falsey
+        expect(@database[:items].first(slug: 'bar', count: 2).nil?).to be_falsey
+      end
+
       it 'will only insert new entities if some already exist'
     end
 
