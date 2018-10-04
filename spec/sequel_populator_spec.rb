@@ -60,7 +60,24 @@ RSpec.describe Sequel::Populator do
         expect(@database[:items].first(slug: 'bar', count: 2).nil?).to be_falsey
       end
 
-      it 'will only insert new entities if some already exist'
+      it 'will only insert new entities if some already exist' do
+        data = {
+          'item' => [
+            { 'slug' => 'foo', 'count' => 1 },
+            { 'slug' => 'bar', 'count' => 2 }
+          ]
+        }
+
+        @database[:items].insert slug: 'foo', count: 1
+
+        expect(@database[:items].count).to eq 1
+
+        Sequel::Populator.run @database, data
+
+        expect(@database[:items].count).to eq 2
+        expect(@database[:items].first(slug: 'foo', count: 1).nil?).to be_falsey
+        expect(@database[:items].first(slug: 'bar', count: 2).nil?).to be_falsey
+      end
     end
 
     it 'will raise an exception when the value for a table is not a hash or array'
