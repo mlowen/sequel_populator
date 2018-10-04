@@ -21,6 +21,8 @@ RSpec.describe Sequel::Populator do
     expect(Sequel::Populator::VERSION).not_to be nil
   end
 
+  it 'will throw an exception if the seed data is not a string or a hash'
+
   context 'Entity creation' do
     context 'single entity' do
       it 'will insert when the entity does not already exist' do
@@ -90,7 +92,18 @@ RSpec.describe Sequel::Populator do
   end
 
   context 'External data' do
-    it 'will load data from a JSON file'
-    it 'will load data from a YAML file'
+    it 'will throw an exception if the file has an unexpect extension'
+
+    context 'json' do
+      it 'will load data from a file'
+      it 'will throw an exception if the file does not exist'
+      it 'will throw an exception if the content is not a hash'
+    end
+
+    context 'YAML' do
+      it 'will load data from a file'
+      it 'will throw an exception if the file does not exist'
+      it 'will throw an exception if the content is not a hash'
+    end
   end
 end
