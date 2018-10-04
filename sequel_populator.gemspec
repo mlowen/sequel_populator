@@ -2,7 +2,7 @@
 
 lib = File.expand_path('lib', __dir__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
-require 'sequel_populator'
+require 'sequel_populator/version'
 
 Gem::Specification.new do |spec|
   spec.name          = 'sequel_populator'
