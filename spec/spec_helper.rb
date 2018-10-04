@@ -1,14 +1,6 @@
 # frozen_string_literal: true
 
 require 'bundler/setup'
-require 'simplecov'
-
-SimpleCov.start do
-  minimum_coverage 90
-
-  add_filter '/spec/'
-end
-
 require 'sequel_populator'
 
 RSpec.configure do |config|
