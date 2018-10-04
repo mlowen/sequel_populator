@@ -1,12 +1,15 @@
 # frozen_string_literal: true
 
 module Sequel
+  # Module is responsible for housing the functionality to populate a database
+  # with seed data, based on either a hash or file path provided.
   module Populator
     require 'sequel'
 
     require 'json'
     require 'yaml'
 
+    # This class is responsible for populating the database.
     class Runner
       def initialize(database, source)
         Sequel.extension :inflector
@@ -25,14 +28,11 @@ module Sequel
 
       def process_table(table, entity)
         if entity.is_a? Hash
-          table_name = table.tableize.to_sym
           fields = {}
+          entity.each { |k, v| fields[k.to_sym] = v unless k.start_with?('$') }
 
-          entity.reject { |field| field.start_with?('$') }
-                .merge(fetch_references(entity))
-                .each { |k, v| fields[k.to_sym] = v }
-
-          create_unless_exists(table_name, fields)
+          create_unless_exists(table.tableize.to_sym,
+                               fields.merge(fetch_references(entity)))
         elsif entity.is_a? Array
           entity.each { |item| process_table(table, item) }
         else

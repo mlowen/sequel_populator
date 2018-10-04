@@ -31,7 +31,7 @@ RSpec.describe Sequel::Populator do
         Sequel::Populator.run @database, data
 
         expect(@database[:items].count).to eq 1
-
+        expect(@database[:items].first(slug: 'foo', count: 1).nil?).to be_falsey
       end
 
       it 'will not insert when the entity already exists' do
@@ -82,7 +82,7 @@ RSpec.describe Sequel::Populator do
       end
     end
 
-    it 'will raise an exception when the value for a table is not a hash or array'
+    it 'will raise an exception when the table data is not a hash or array'
     it 'will insert data into multiple tables'
   end
 
