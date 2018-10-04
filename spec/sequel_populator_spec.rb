@@ -1,9 +1,15 @@
 # frozen_string_literal: true
 
 RSpec.describe Sequel::Populator do
-  # Pre & Post hooks
+  # Hooks
   before(:each) do
     @database = Sequel.sqlite
+    @database.create_table :items do
+      primary_key :id
+
+      String :slug
+      Integer :count
+    end
   end
 
   after(:each) do
@@ -17,7 +23,19 @@ RSpec.describe Sequel::Populator do
 
   context 'Entity creation' do
     context 'single entity' do
-      it 'will insert when the entity does not already exist'
+      it 'will insert when the entity does not already exist' do
+        data = { 'items' => [ { 'slug' => 'foo', 'count' => 1 } ] }
+
+        Sequel::Populator.run @database, data
+
+        expect(@database[:items].count).to eq 1
+
+        row = @database[:items].first
+
+        expect(row[:slug]).to eq 'foo'
+        expect(row[:count]).to eq 1
+      end
+
       it 'will not insert when the entity already exists'
     end
 
