@@ -6,27 +6,23 @@ module Sequel
   module Populator
     require 'sequel'
 
-    require 'json'
-    require 'yaml'
-
     # This class is responsible for populating the database.
     class Runner
-      def initialize(database, source)
+      def initialize(database)
         Sequel.extension :inflector
 
         @database = database
-        @source = source
       end
 
-      def run
+      def run(data)
         @database.transaction do
-          seed_data.each { |table, entities| process_table(table, entities) }
+          data.each { |table, entities| populate_table(table, entities) }
         end
       end
 
       private
 
-      def process_table(table, entity)
+      def populate_table(table, entity)
         if entity.is_a? Hash
           fields = {}
           entity.each { |k, v| fields[k.to_sym] = v unless k.start_with?('$') }
@@ -34,7 +30,7 @@ module Sequel
           create_unless_exists(table.tableize.to_sym,
                                fields.merge(fetch_references(entity)))
         elsif entity.is_a? Array
-          entity.each { |item| process_table(table, item) }
+          entity.each { |item| populate_table(table, item) }
         else
           raise "Unexpected value for #{table}"
         end
@@ -56,19 +52,6 @@ module Sequel
       def create_unless_exists(table, fields)
         existing = @database[table].first(fields)
         @database[table].insert(fields) if existing.nil?
-      end
-
-      def seed_data
-        return @source if @source.is_a?(Hash)
-
-        case File.extname(@source).downcase
-        when '.json'
-          JSON.parse File.read(@source)
-        when '.yml'
-          YAML.safe_load File.read(@source)
-        else
-          raise 'Unable to handle source'
-        end
       end
     end
   end
