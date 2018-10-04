@@ -9,6 +9,7 @@ module Sequel
 
     def self.load_seed_data(source)
       return source if source.is_a?(Hash)
+      raise "Unexpected source: #{source}" unless source.is_a?(String)
 
       case File.extname(source).downcase
       when '.json'

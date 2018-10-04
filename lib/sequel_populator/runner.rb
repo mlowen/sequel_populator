@@ -28,7 +28,7 @@ module Sequel
           entity.each { |k, v| fields[k.to_sym] = v unless k.start_with?('$') }
 
           create_unless_exists(table.tableize.to_sym,
-                               fields.merge(fetch_references(entity)))
+                               fields.merge(populate_references(entity)))
         elsif entity.is_a? Array
           entity.each { |item| populate_table(table, item) }
         else
@@ -36,7 +36,7 @@ module Sequel
         end
       end
 
-      def fetch_references(entity)
+      def populate_references(entity)
         references = {}
 
         if entity.key?('$refs')
