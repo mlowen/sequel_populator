@@ -24,7 +24,7 @@ RSpec.describe Sequel::Populator do
   context 'Entity creation' do
     context 'single entity' do
       it 'will insert when the entity does not already exist' do
-        data = { 'items' => [ { 'slug' => 'foo', 'count' => 1 } ] }
+        data = { 'item' => { 'slug' => 'foo', 'count' => 1 } }
 
         Sequel::Populator.run @database, data
 
@@ -36,7 +36,16 @@ RSpec.describe Sequel::Populator do
         expect(row[:count]).to eq 1
       end
 
-      it 'will not insert when the entity already exists'
+      it 'will not insert when the entity already exists' do
+        @database[:items].insert slug: 'foo', count: 1
+
+        expect(@database[:items].count).to eq 1
+
+        data = { 'item' => { 'slug' => 'foo', 'count' => 1 } }
+        Sequel::Populator.run @database, data
+
+        expect(@database[:items].count).to eq 1
+      end
     end
 
     context 'multiple entities' do
@@ -44,6 +53,7 @@ RSpec.describe Sequel::Populator do
       it 'will only insert new entities if some already exist'
     end
 
+    it 'will raise an exception when the value for a table is not a hash or array'
     it 'will insert data into multiple tables'
   end
 

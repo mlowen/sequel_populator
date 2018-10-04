@@ -30,15 +30,20 @@ module Sequel
 
     private
 
-    def process_table(table, entities)
-      table_sym = table.to_sym
+    def process_table(table, entity)
+      if entity.is_a? Hash
+        table_name = table.tableize.to_sym
+        fields = {}
 
-      entities.each do |entity|
-        fields = entity.reject do |field|
-          field.start_with?('$')
-        end.merge(fetch_references(entity))
+        entity.reject { |field| field.start_with?('$') }
+              .merge(fetch_references(entity))
+              .each { |k, v| fields[k.to_sym] = v }
 
-        create_unless_exists(table_sym, fields)
+        create_unless_exists(table_name, fields)
+      elsif entity.is_a? Array
+        entity.each { |item| process_table(table, item) }
+      else
+        raise "Unexpected value for #{table}"
       end
     end
 
