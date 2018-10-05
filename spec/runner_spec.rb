@@ -10,6 +10,13 @@ RSpec.describe Sequel::Populator::Runner do
       String :slug
       Integer :count
     end
+
+    @database.create_table :other_items do
+      primary_key :id
+
+      String :slug
+      Integer :count
+    end
   end
 
   after(:each) do
@@ -89,7 +96,17 @@ RSpec.describe Sequel::Populator::Runner do
       end.to raise_error RuntimeError
     end
 
-    it 'will insert data into multiple tables'
+    it 'will insert data into multiple tables' do
+      data = {
+        'items' => [ { 'slug' => 'foo', 'count' => 1 } ],
+        'other_items' => [ { 'slug' => 'bar', 'count' => 2 } ]
+      }
+
+      Sequel::Populator::Runner.new(@database).run data
+
+      expect(@database[:items].first(slug: 'foo', count: 1).nil?).to be_falsey
+      expect(@database[:other_items].first(slug: 'bar', count: 2).nil?).to be_falsey
+    end
   end
 
   context 'Reference data' do
