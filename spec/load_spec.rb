@@ -31,10 +31,16 @@ RSpec.describe 'Sequel::Populator.load_seed_data' do
     it 'will throw an exception if the file does not exist' do
       expect do
         Sequel::Populator.load_seed_data './non-existent.json'
-      end.to raise_error RuntimeError
+      end.to raise_error Errno::ENOENT
     end
 
-    it 'will return the parsed contents of the file on success'
+    it 'will return the parsed contents of the file on success' do
+      fixture = File.expand_path('fixtures/data.json', __dir__)
+      data = Sequel::Populator.load_seed_data(fixture)
+
+      expect(data.is_a? Hash).to be true
+      expect(data['items'].first).to eq('slug' => 'foo', 'count' => 1)
+    end
   end
 
   context 'YAML' do
@@ -44,6 +50,12 @@ RSpec.describe 'Sequel::Populator.load_seed_data' do
       end.to raise_error RuntimeError
     end
 
-    it 'will return the parsed contents of the file on success'
+    it 'will return the parsed contents of the file on success' do
+      fixture = File.expand_path('fixtures/data.yml', __dir__)
+      data = Sequel::Populator.load_seed_data(fixture)
+
+      expect(data.is_a? Hash).to be true
+      expect(data['items'].first).to eq('slug' => 'bar', 'count' => 2)
+    end
   end
 end
