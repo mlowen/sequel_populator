@@ -28,12 +28,22 @@ RSpec.describe 'Sequel::Populator.load_seed_data' do
   end
 
   context 'JSON' do
-    it 'will throw an exception if the file does not exist'
+    it 'will throw an exception if the file does not exist' do
+      expect do
+        Sequel::Populator.load_seed_data './non-existent.json'
+      end.to raise_error RuntimeError
+    end
+
     it 'will return the parsed contents of the file on success'
   end
 
   context 'YAML' do
-    it 'will throw an exception if the file does not exist'
+    it 'will throw an exception if the file does not exist' do
+      expect do
+        Sequel::Populator.load_seed_data './non-existent.yaml'
+      end.to raise_error RuntimeError
+    end
+
     it 'will return the parsed contents of the file on success'
   end
 end
