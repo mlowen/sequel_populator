@@ -1,10 +1,18 @@
 # frozen_string_literal: true
 
-RSpec.describe Sequel::Populator do
+RSpec.describe 'Sequel::Populator.load_seed_data' do
   it 'will raise an error if the source is not a string or a hash' do
-    expect { Sequel::Populator.load_seed_data(2) }.to raise_error RuntimeError
-    expect { Sequel::Populator.load_seed_data(true) }.to raise_error RuntimeError
-    expect { Sequel::Populator.load_seed_data([]) }.to raise_error RuntimeError
+    expect do
+      Sequel::Populator.load_seed_data(2)
+    end.to raise_error RuntimeError
+
+    expect do
+      Sequel::Populator.load_seed_data(true)
+    end.to raise_error RuntimeError
+
+    expect do
+      Sequel::Populator.load_seed_data([])
+    end.to raise_error RuntimeError
   end
 
   it 'will return a hash if given a hash' do
