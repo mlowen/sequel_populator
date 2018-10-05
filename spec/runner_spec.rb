@@ -141,6 +141,27 @@ RSpec.describe Sequel::Populator::Runner do
       expect(sub_item).to_not be_nil
     end
 
-    it 'will use a matching entity if it already exists'
+    it 'will use a matching entity if it already exists' do
+      # Inserting two items so that the id isn't 1
+      @database[:items].insert slug: 'foo', count: 1
+      ref_id = @database[:items].insert slug: 'bar', count: 2
+
+      data = {
+        'sub_items' => [
+          {
+            'slug' => 'tar',
+            'count' => 3,
+            '$refs': {
+              'item' => { 'slug' => 'bar', 'count' => 2 }
+            }
+          }
+        ]
+      }
+
+      Sequel::Populator::Runner.new(@database).run data
+
+      item = @database[:sub_items].first slug: 'tar', count: 3, item_id: ref_id
+      expect(item).to_not be_nil
+    end
   end
 end
