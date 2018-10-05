@@ -42,7 +42,7 @@ RSpec.describe Sequel::Populator::Runner do
     context 'multiple entities' do
       it 'can insert multiple entities into a table' do
         data = {
-          'item' => [
+          'items' => [
             { 'slug' => 'foo', 'count' => 1 },
             { 'slug' => 'bar', 'count' => 2 }
           ]
@@ -57,7 +57,7 @@ RSpec.describe Sequel::Populator::Runner do
 
       it 'will only insert new entities if some already exist' do
         data = {
-          'item' => [
+          'items' => [
             { 'slug' => 'foo', 'count' => 1 },
             { 'slug' => 'bar', 'count' => 2 }
           ]
@@ -75,7 +75,20 @@ RSpec.describe Sequel::Populator::Runner do
       end
     end
 
-    it 'will raise an exception when the table data is not a hash or array'
+    it 'will raise an exception when the table data is not a hash or array' do
+      expect do
+        Sequel::Populator::Runner.new(@database).run 'item' => 1
+      end.to raise_error RuntimeError
+
+      expect do
+        Sequel::Populator::Runner.new(@database).run 'item' => true
+      end.to raise_error RuntimeError
+
+      expect do
+        Sequel::Populator::Runner.new(@database).run 'item' => 'foo'
+      end.to raise_error RuntimeError
+    end
+
     it 'will insert data into multiple tables'
   end
 
