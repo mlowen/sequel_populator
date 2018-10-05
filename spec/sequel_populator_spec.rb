@@ -21,7 +21,24 @@ RSpec.describe Sequel::Populator do
     expect(Sequel::Populator::VERSION).not_to be nil
   end
 
-  it 'will load data from a Hash'
-  it 'will load data from a YAML file'
-  it 'will load data from a JSON file'
+  it 'will load data from a Hash' do
+    data = { 'items' => [{ 'slug' => 'foo', 'count' => 1 }] }
+    Sequel::Populator.run(@database, data)
+
+    expect(@database[:items].first(slug: 'foo', count: 1)).to_not be_nil
+  end
+
+  it 'will load data from a YAML file' do
+    fixture = File.expand_path('fixtures/data.json', __dir__)
+    Sequel::Populator.run(@database, fixture)
+
+    expect(@database[:items].first(slug: 'foo', count: 1)).to_not be_nil
+  end
+
+  it 'will load data from a JSON file' do
+    fixture = File.expand_path('fixtures/data.yml', __dir__)
+    Sequel::Populator.run(@database, fixture)
+
+    expect(@database[:items].first(slug: 'bar', count: 2)).to_not be_nil
+  end
 end
