@@ -17,6 +17,14 @@ RSpec.describe Sequel::Populator::Runner do
       String :slug
       Integer :count
     end
+
+    @database.create_table :sub_items do
+      primary_key :id
+
+      String :slug
+      Integer :count
+      foreign_key :item_id, :items
+    end
   end
 
   after(:each) do
@@ -31,7 +39,7 @@ RSpec.describe Sequel::Populator::Runner do
         Sequel::Populator::Runner.new(@database).run data
 
         expect(@database[:items].count).to eq 1
-        expect(@database[:items].first(slug: 'foo', count: 1).nil?).to be_falsey
+        expect(@database[:items].first(slug: 'foo', count: 1)).to_not be_nil
       end
 
       it 'will not insert when the entity already exists' do
@@ -58,8 +66,8 @@ RSpec.describe Sequel::Populator::Runner do
         Sequel::Populator::Runner.new(@database).run data
 
         expect(@database[:items].count).to eq 2
-        expect(@database[:items].first(slug: 'foo', count: 1).nil?).to be_falsey
-        expect(@database[:items].first(slug: 'bar', count: 2).nil?).to be_falsey
+        expect(@database[:items].first(slug: 'foo', count: 1)).to_not be_nil
+        expect(@database[:items].first(slug: 'bar', count: 2)).to_not be_nil
       end
 
       it 'will only insert new entities if some already exist' do
@@ -77,8 +85,8 @@ RSpec.describe Sequel::Populator::Runner do
         Sequel::Populator::Runner.new(@database).run data
 
         expect(@database[:items].count).to eq 2
-        expect(@database[:items].first(slug: 'foo', count: 1).nil?).to be_falsey
-        expect(@database[:items].first(slug: 'bar', count: 2).nil?).to be_falsey
+        expect(@database[:items].first(slug: 'foo', count: 1)).to_not be_nil
+        expect(@database[:items].first(slug: 'bar', count: 2)).to_not be_nil
       end
     end
 
@@ -98,19 +106,41 @@ RSpec.describe Sequel::Populator::Runner do
 
     it 'will insert data into multiple tables' do
       data = {
-        'items' => [ { 'slug' => 'foo', 'count' => 1 } ],
-        'other_items' => [ { 'slug' => 'bar', 'count' => 2 } ]
+        'items' => [{ 'slug' => 'foo', 'count' => 1 }],
+        'other_items' => [{ 'slug' => 'bar', 'count' => 2 }]
       }
 
       Sequel::Populator::Runner.new(@database).run data
 
-      expect(@database[:items].first(slug: 'foo', count: 1).nil?).to be_falsey
-      expect(@database[:other_items].first(slug: 'bar', count: 2).nil?).to be_falsey
+      expect(@database[:items].first(slug: 'foo', count: 1)).to_not be_nil
+      expect(@database[:other_items].first(slug: 'bar', count: 2)).to_not be_nil
     end
   end
 
   context 'Reference data' do
-    it 'will create the referenced entity if it does not exist'
+    it 'will create the referenced entity if it does not exist' do
+      data = {
+        'sub_items' => [
+          {
+            'slug' => 'foo',
+            'count' => 1,
+            '$refs': {
+              'item' => { 'slug' => 'bar', 'count' => 2 }
+            }
+          }
+        ]
+      }
+
+      Sequel::Populator::Runner.new(@database).run data
+
+      item = @database[:items].first(slug: 'bar', count: 2)
+      sub_item = @database[:sub_items].first(slug: 'foo', count: 1,
+                                             item_id: item[:id])
+
+      expect(item).to_not be_nil
+      expect(sub_item).to_not be_nil
+    end
+
     it 'will use a matching entity if it already exists'
   end
 end

@@ -24,11 +24,7 @@ module Sequel
 
       def populate_table(table, entity)
         if entity.is_a? Hash
-          fields = {}
-          entity.each { |k, v| fields[k.to_sym] = v unless k.start_with?('$') }
-
-          create_unless_exists(table.tableize.to_sym,
-                               fields.merge(populate_references(entity)))
+          fetch_or_create(table, entity)
         elsif entity.is_a? Array
           entity.each { |item| populate_table(table, item) }
         else
@@ -39,19 +35,25 @@ module Sequel
       def populate_references(entity)
         references = {}
 
-        if entity.key?('$refs')
-          entity['$refs'].each do |ref, ref_fields|
-            id = @database[ref.pluralize.to_sym].first!(ref_fields)[:id]
-            references[ref.foreign_key.to_sym] = id
+        if entity.key?(:$refs)
+          entity[:$refs].each do |ref, fields|
+            references[ref.foreign_key.to_sym] = fetch_or_create(ref, fields)
           end
         end
 
         references
       end
 
-      def create_unless_exists(table, fields)
-        existing = @database[table].first(fields)
-        @database[table].insert(fields) if existing.nil?
+      def fetch_or_create(table, entity)
+        fields = populate_references(entity)
+        table_name = table.tableize.to_sym
+
+        entity.each do |k, v|
+          fields[k.to_sym] = v unless k.to_s.start_with?('$')
+        end
+
+        existing = @database[table_name].first(fields)
+        existing.nil? ? @database[table_name].insert(fields) : existing[:id]
       end
     end
   end
