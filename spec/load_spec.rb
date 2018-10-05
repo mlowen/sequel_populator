@@ -38,7 +38,7 @@ RSpec.describe 'Sequel::Populator.load_seed_data' do
       fixture = File.expand_path('fixtures/data.json', __dir__)
       data = Sequel::Populator.load_seed_data(fixture)
 
-      expect(data.is_a? Hash).to be true
+      expect(data.is_a?(Hash)).to be true
       expect(data['items'].first).to eq('slug' => 'foo', 'count' => 1)
     end
   end
@@ -54,7 +54,7 @@ RSpec.describe 'Sequel::Populator.load_seed_data' do
       fixture = File.expand_path('fixtures/data.yml', __dir__)
       data = Sequel::Populator.load_seed_data(fixture)
 
-      expect(data.is_a? Hash).to be true
+      expect(data.is_a?(Hash)).to be true
       expect(data['items'].first).to eq('slug' => 'bar', 'count' => 2)
     end
   end
