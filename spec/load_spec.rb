@@ -21,7 +21,19 @@ RSpec.describe 'Sequel::Populator.load_seed_data' do
     expect(Sequel::Populator.load_seed_data(data)).to be data
   end
 
-  it 'will throw an exception if the file has an unexpected extension'
-  it 'will throw an exception if the JSON file does not exist'
-  it 'will throw an exception if the YAML file does not exist'
+  it 'will throw an exception if the file has an unexpected extension' do
+    expect do
+      Sequel::Populator.load_seed_data './test.png'
+    end.to raise_error RuntimeError
+  end
+
+  context 'JSON' do
+    it 'will throw an exception if the file does not exist'
+    it 'will return the parsed contents of the file on success'
+  end
+
+  context 'YAML' do
+    it 'will throw an exception if the file does not exist'
+    it 'will return the parsed contents of the file on success'
+  end
 end
