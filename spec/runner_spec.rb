@@ -142,8 +142,6 @@ RSpec.describe Sequel::Populator::Runner do
     end
 
     it 'will load the ref data if the keys is a string' do
-      data = '{ "sub_items": [{ "slug": "foo", "count": 1, "$refs": { "item": { "slug": "bar", "count": 2 }}}] }'
-
       data = {
         'sub_items' => [
           {
