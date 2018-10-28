@@ -34,9 +34,11 @@ module Sequel
 
       def populate_references(entity)
         references = {}
+        key = :$refs if entity.key?(:$refs)
+        key = '$refs' if entity.key?('$refs')
 
-        if entity.key?(:$refs)
-          entity[:$refs].each do |ref, fields|
+        unless key.nil?
+          entity[key].each do |ref, fields|
             references[ref.foreign_key.to_sym] = fetch_or_create(ref, fields)
           end
         end

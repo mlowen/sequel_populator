@@ -141,6 +141,33 @@ RSpec.describe Sequel::Populator::Runner do
       expect(sub_item).to_not be_nil
     end
 
+    it 'will load the ref data if the keys is a string' do
+      data = '{ "sub_items": [{ "slug": "foo", "count": 1, "$refs": { "item": { "slug": "bar", "count": 2 }}}] }'
+
+      data = {
+        'sub_items' => [
+          {
+            'slug' => 'foo',
+            'count' => 1
+          }
+        ]
+      }
+
+      # Loading this way otherwise it gets converted into a symbol.
+      data['sub_items'][0]['$refs'] = {
+        'item' => { 'slug' => 'bar', 'count' => 2 }
+      }
+
+      Sequel::Populator::Runner.new(@database).run data
+
+      item = @database[:items].first(slug: 'bar', count: 2)
+      sub_item = @database[:sub_items].first(slug: 'foo', count: 1,
+                                             item_id: item[:id])
+
+      expect(item).to_not be_nil
+      expect(sub_item).to_not be_nil
+    end
+
     it 'will use a matching entity if it already exists' do
       # Inserting two items so that the id isn't 1
       @database[:items].insert slug: 'foo', count: 1
