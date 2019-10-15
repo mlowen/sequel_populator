@@ -18,6 +18,7 @@ jobs:
         version: 2.6.x
     - name: Run tests
       run: |
+        sudo apt-get install libsqlite3-dev
         bundle install
         bundle exec rspec
     - name: Publish to GPR
